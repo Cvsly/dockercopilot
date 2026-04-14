@@ -1,24 +1,23 @@
+version: '3.8'
+
 services:
   dockercopilot:
     container_name: dockercopilot
     restart: always
     privileged: true
-    # 移除 network_mode: bridge，让 compose 创建默认网络
+    # 去掉 network_mode: bridge，改用自定义网络
     ports:
-      - "12712:12712"          # 对外暴露，方便外部访问
+      - "12712:12712"        # 宿主机端口映射，方便外部调用（可选）
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/data
     environment:
       - TZ=Asia/Shanghai
       - DOCKER_HOST=unix:///var/run/docker.sock
-      - secretKey=密码 #不少于八位且非纯数字
-      - HTTP_PROXY=http://192.168.8.99:7890 #填写自己实际代理地址端口
-      - HTTPS_PROXY=http://192.168.8.99:7890 #填写自己实际代理地址端口
-      - NO_PROXY=localhost,127.0.0.1,.docker.internal,unix:///var/run/docker.sock,172.16.0.0/12,10.0.0.0/8,192.168.0.0/16
-    image: docker.1ms.run/0nlylty/dockercopilot:latest
+      - secretKey=xxxxx   # 不少于8位且非纯数字
+    image: 0nlylty/dockercopilot:latest
     networks:
-      - dockercopilot-net       # 加入自定义网络
+      - dockercopilot-net
 
   dockercopilot-bot:
     image: xydgg/dockercopilot-bot:latest
@@ -28,8 +27,8 @@ services:
       - /root/docker/dockercopilot-bot:/app/config
     environment:
       - TZ=Asia/Shanghai
-      - TELEGRAM_BOT_TOKEN=你的真实BotToken
-      - TELEGRAM_CHAT_IDS=你的ChatID
+      - TELEGRAM_BOT_TOKEN=xxxx
+      - TELEGRAM_CHAT_IDS=xxxxx
       - TELEGRAM_POLLING_INTERVAL=1
       - TELEGRAM_UPDATE_CHECK_CRON=*/10 * * * *
       - TELEGRAM_NOTIFY_ON_UPDATE=true
@@ -38,13 +37,13 @@ services:
       - TELEGRAM_CLEAN_IMAGES_CRON=*/25 * * * *
       - TELEGRAM_AUTO_UPDATE_CONTAINERS=true
       - TELEGRAM_UPDATE_CONTAINERS_CRON=0 */2 * * *
-      # 使用服务名 dockercopilot（同一自定义网络内可解析）
-      - DOCKERCOPILOT_API_URLS=local::http://dockercopilot:12712::liuyong962464
+      # 关键：API URL 中使用服务名 dockercopilot 和内部端口 12712
+      - DOCKERCOPILOT_API_URLS=PVE-NAS::http://dockercopilot:12712::secretKey
     networks:
-      - dockercopilot-net       # 加入同一网络
+      - dockercopilot-net
     depends_on:
-      - dockercopilot           # 确保 dockercopilot 先启动
+      - dockercopilot   # 确保核心服务先启动（可选）
 
 networks:
   dockercopilot-net:
-    driver: bridge              # 创建一个 bridge 类型的自定义网络
+    driver: bridge
