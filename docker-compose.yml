@@ -37,7 +37,7 @@ services:
       - TELEGRAM_CLEAN_IMAGES_CRON=*/25 * * * *
       - TELEGRAM_AUTO_UPDATE_CONTAINERS=true
       - TELEGRAM_UPDATE_CONTAINERS_CRON=0 */2 * * *
-      # 关键：API URL 中使用服务名 dockercopilot 和内部端口 12712
+      # 关键：API URL 中使用服务名 dockercopilot 和内部端口 12712，用”|“符号隔开可以添加多个监控
       - DOCKERCOPILOT_API_URLS=PVE-NAS::http://dockercopilot:12712::secretKey
     networks:
       - dockercopilot-net
